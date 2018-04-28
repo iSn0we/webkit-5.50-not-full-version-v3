@@ -1108,10 +1108,10 @@ function mallocu32(size) {
     var rtv = p.fcall(window.gadgets["mov rax, rdi"], 0x41414141);
     var pid = p.syscall("getpid");
     var uid = p.syscall("getuid");
-    var suid = p.syscall("setuid", 0, 0x41414141).low;
+    var suid = p.syscall("setuid", 0, 0x41414142).low;
     print("all good. fcall test retval = 4141414141");
     print("rtv = "+ rtv + " - uid: " + uid + " - pid: " + pid + " - suid: " + suid);
-    print("....webkit 90% stage....");
+    print("....webkit full stage 90%....");
     
    
 }
