@@ -15,4 +15,5 @@ add var thread2
 add kchain
 
 add var scratch 
-    var test = kernel_rop_run(fd1, scratch);
+    
+add var test = kernel_rop_run(fd1, scratch);
