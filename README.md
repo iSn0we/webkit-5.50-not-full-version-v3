@@ -11,3 +11,8 @@ add var instancespr 2048
 add all gadgets
 
 add var thread2
+
+add kchain
+
+add var scratch 
+    var test = kernel_rop_run(fd1, scratch);
