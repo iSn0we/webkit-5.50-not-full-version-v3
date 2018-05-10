@@ -766,7 +766,7 @@ function swapkeyval(json){
     window.syscalls = {};
 
  
-    log("--- welcome to STAGE 3: Trigger---");
+    log("--- welcome to stage 3: Trigger---");
     
     var kview = new Uint8Array(0x1000);
     var kstr = p.leakval(kview).add32(0x10);
@@ -1322,13 +1322,10 @@ function mallocu32(size) {
    
     log("loaded sycalls");
 
-    
-    var pid = p.syscall("getpid", 0)== 0 ;
-    var uid = p.syscall("getuid", 0)== 0 ;    
     print("all good. fcall test retval = Successful");
-    print ("--- welcome to STAGE 3: Racing Filters ---");
+    print ("--- welcome to stage 3: Racing Filters ---");
     print ("all good. test loader memory = Successful");
-    print ("--- welcome to STAGE4 ---");
+    print ("--- welcome to stage 4 ---");
     print("all Stage test = 96%");
     print("....webkit 5.50 Success....");
     
