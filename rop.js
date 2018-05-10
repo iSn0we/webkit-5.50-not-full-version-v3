@@ -173,7 +173,7 @@ var gadgetmap_wk = function() {
 
 "stack_chk_fail":         0x000000C8,
 "memcpy":                 0x000000F8,
-
+"setjmp":                 0x000014f8
 },
 
  gadgeton = {};
