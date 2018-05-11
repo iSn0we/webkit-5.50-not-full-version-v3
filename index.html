@@ -22,18 +22,22 @@
 		PS4Xploit v3  <a href="https://github.com/ciss84">ciss84</a>.
 	</div>
 	<script>
-             window.didload = 0;
+	   window.didload = 0;
             window.didpost = 0;
             window.onload = function() {
                 window.didload = 1;
                 if (window.didpost == 1)
-                    window.stage2();
+                    postExploit();
             }
-            window.postExpl = function() {
+             window.postExpl = function() {
                 window.didpost = 1;
                 if (window.didload == 1)
-                    window.stage2();
+                    postExploit();
             }
+	
+      function runExploit() {
+      setTimeout(exploit, 1500);
+    }
        
          
 	   function allset() {
