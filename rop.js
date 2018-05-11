@@ -1254,9 +1254,6 @@ function swapkeyval(json){
       var thread = malloc(0x08);
       var thr_name = malloc(0x10);
       p.writeString(thr_name, "loader");
-                  
-     var createRet = p.fcall(scePthreadCreate, thread, 0, code_addr, 0, thr_name);
-    }
      
       // write dummy loader
       for (var i = 0; i < loader.length; i++) {
@@ -1265,8 +1262,10 @@ function swapkeyval(json){
      // write payload
       for (var i = 0; i < payload.length; i++) {
           p.write4(code_addr.add32(0x100000 + i * 4), payload[i]);
-      }  
-  
+      }
+        
+   var createRet = p.fcall(scePthreadCreate, thread, 0, code_addr, 0, thr_name);
+    }
   var ptr     = p.read8(p.leakval(backing).add32(0x10));
   ptr.backing = backing;
 
