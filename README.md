@@ -1,6 +1,6 @@
 # webkit-5.50-And-5.53/5.53-01-not-full-version-v3
 
-# NOTE : Al-Azif Exploit Host work on 5.53-01 as I've tested it. Changes made will be useful only when i'll figure out what makes it unusable.
+# NOTE : Al-Azif Exploit Host work on 5.53-01 as I've tested it full works
 
 add ping
 
