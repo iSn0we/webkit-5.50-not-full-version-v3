@@ -1,6 +1,8 @@
 # webkit-5.50-And-5.53/5.53-01-not-full-version-v3
-update server for ps4 5.53/5.53-01 beta. if it doesn't work use http://shadixaced.cyanid.me/wbkt/
-# NOTE : Al-Azif Exploit Host work on 5.53-01 as I've tested it full works
+
+updated server 12/05/18 if it still doesn't work please try : shadixaced.cyanid.me/wbkt
+
+# NOTE : Al-Azif Exploit Host now works on 5.53-01 as I've tested it. (12/05/18)
 
 add ping
 
