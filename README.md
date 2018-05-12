@@ -1,4 +1,6 @@
-webkit-5.50-And-5.53/5.53.01-not-full-version-v3 
+# webkit-5.50-And-5.53/5.53-01-not-full-version-v3
+
+# NOTE : Al-Azif Exploit Host does NOT work on 5.53-01 as I've tested it. Changes made will be useful only when i'll figure out what makes it unusable.
 
 add ping
 
@@ -24,10 +26,8 @@ update readme and index.html
 
 update in rop gadgets 11/05/2018
 
-fix stability and add alsif serveur
+fix stability and add alasif server
 
-update server for ps4 5.53/5.53.01 beta
+update server for ps4 5.53/5.53-01 beta. if it doesn't work use http://shadixaced.cyanid.me/wbkt/ 
 
-or use http://shadixaced.cyanid.me/wbkt/ 
-
-thanks you shad X
+thank you Shad X for the website
