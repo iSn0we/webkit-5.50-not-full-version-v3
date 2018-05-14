@@ -1,5 +1,5 @@
 var p;
-var xhr_sync_log = function(str) {
+var ping = function(str) {
     "use strict";
     var xhr = new XMLHttpRequest();
     xhr.open("GET", url, false);
@@ -9,11 +9,11 @@ var findModuleBaseXHR = function(addr)
 {
     var addr_ = addr.add32(0); // copy
     addr_.low &= 0xFFFFF000;
-    xhr_sync_log("START: " + addr_);
+    ping("START: " + addr_);
     
     while (1) {
         var vr = p.read4(addr_.add32(0x110-4));
-        xhr_sync_log("step" + addr_);
+        ping("step" + addr_);
         addr_.sub32inplace(0x1000);
     }
 }
