@@ -2,6 +2,7 @@
 # NOTE : Al-Azif Exploit Host now works on 5.53-01 as I've tested it. (12/05/18)
 changes made :
 update server for ps4 5.53/5.53-01 (Shad X had published a website, but since server works, there's no need) or http://shadixaced.cyanid.me/webkit/
+
 add ping
 
 add loader
