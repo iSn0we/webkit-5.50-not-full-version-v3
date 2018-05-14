@@ -32,4 +32,4 @@ update server for ps4 5.53/5.53-01 (Shad X had published a website, but since se
 
 add new code in rops and expl
 
-updade gadget and add molloc code and stackPointer and stkebase
+updade gadget and malloc code and stackPointer and stkebase and ping
