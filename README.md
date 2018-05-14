@@ -31,3 +31,5 @@ fix stability and add alasif server
 update server for ps4 5.53/5.53-01 (Shad X had published a website, but since server works, there's no need)
 
 add new code in rops and expl
+
+updade gadget and add molloc code and stackPointer and stkebase
