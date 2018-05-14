@@ -31,3 +31,5 @@ fix stability and add alasif server
 update server for ps4 5.53/5.53-01 
 
 thank you Shad X for the website
+
+add new code in rops and expl 
