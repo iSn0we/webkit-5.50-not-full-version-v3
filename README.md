@@ -36,3 +36,10 @@ fix stability and add alasif server
 add new code in rops and expl
 
 updade gadget and malloc code and stackPointer and stkebase and ping
+
+
+# Informations for MacOS and Linux.
+
+Use the Host550.py or Host553.py
+
+Still working on that.
