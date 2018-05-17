@@ -1,5 +1,5 @@
 # webkit-based-5.50-And-run-5.53/5.53-01-not-full-version-v3
-# webkit-based-5.5-And-run-5.55 is here http://shadixaced.cyanid.me/webkit/
+# webkit-based-5.50-And-run-5.55 is here http://shadixaced.cyanid.me/webkit/
 # NOTE : Al-Azif Exploit Host now works on 5.53-01 as I've tested it. (12/05/18)
 changes made :
 update server for ps4 5.53/5.53-01
